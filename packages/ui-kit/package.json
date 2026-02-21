@@ -1,0 +1,18 @@
+{
+    "name": "@icmr/ui-kit",
+    "version": "1.0.0",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "scripts": {
+        "lint": "eslint src/",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "react": "^18.0.0",
+        "@types/react": "^18.0.0"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0"
+    }
+}

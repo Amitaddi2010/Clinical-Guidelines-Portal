@@ -1,0 +1,72 @@
+name: ICMR CGP CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: icmr-cgp-web
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Typecheck
+      run: npm run typecheck
+      
+    - name: Unit Tests
+      run: npx turbo run test
+
+    - name: E2E Tests (Playwright)
+      run: npx turbo run test:e2e
+      
+    - name: Build Turbo Monorepo
+      run: npm run build
+
+  deploy_aws_staging:
+    needs: test_and_build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: \${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: \${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      env:
+        ECR_REGISTRY: \${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: \${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f apps/web/Dockerfile .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        
+    - name: Deploy to ECS Staging
+      run: |
+        echo "Updating ECS Service with new task definition..."
+        # ECS Update Service Command Placeholder
