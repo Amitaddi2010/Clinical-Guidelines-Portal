@@ -72,65 +72,80 @@ export class DocumentUploadService {
   }
 
   /**
-   * Splits HTML content into sections based on heading tags (h1-h4).
-   * Each heading becomes the title of a new section, and all content
-   * until the next heading of equal or higher level becomes the section body.
+   * Splits HTML content into sections based on heading tags.
+   * Strategy: Find the HIGHEST heading level used, and split ONLY on that level.
+   * All lower-level headings remain as content within their parent section.
+   * This way, only the top-level document structure becomes sidebar sections.
    */
   splitHtmlIntoSections(html: string): ExtractedSection[] {
     if (!html || html.trim().length === 0) return [];
 
-    const sections: ExtractedSection[] = [];
-    // Match heading tags h1-h4 and split content around them
-    const headingRegex = /<h([1-4])[^>]*>(.*?)<\/h[1-4]>/gi;
-    const matches: { index: number; level: number; title: string }[] = [];
-
-    let match: RegExpExecArray | null;
-    while ((match = headingRegex.exec(html)) !== null) {
-      matches.push({
-        index: match.index,
-        level: parseInt(match[1]),
-        title: match[2].replace(/<[^>]+>/g, '').trim() // Strip inner HTML tags
-      });
+    // Find which heading levels exist
+    const allHeadingsRegex = /<h([1-6])[^>]*>/gi;
+    const levelsFound = new Set<number>();
+    let m: RegExpExecArray | null;
+    while ((m = allHeadingsRegex.exec(html)) !== null) {
+      levelsFound.add(parseInt(m[1]));
     }
 
-    if (matches.length === 0) {
-      // No headings found — put everything in one section
-      sections.push({
+    if (levelsFound.size === 0) {
+      // No headings at all — return everything as one section
+      return [{
         title: 'Document Content',
         content_html: html,
         order_index: 0
-      });
-      return sections;
+      }];
     }
 
-    // If there's content before the first heading, create an intro section
-    const contentBeforeFirstHeading = html.substring(0, matches[0].index).trim();
-    if (contentBeforeFirstHeading.length > 0) {
-      // Check if it has real content (not just empty tags)
-      const textContent = contentBeforeFirstHeading.replace(/<[^>]+>/g, '').trim();
-      if (textContent.length > 0) {
+    // Use the HIGHEST (smallest number) heading level for splitting
+    const splitLevel = Math.min(...Array.from(levelsFound));
+
+    // Find all headings at the split level
+    const splitRegex = new RegExp(`<h${splitLevel}[^>]*>(.*?)<\\/h${splitLevel}>`, 'gi');
+    const headings: { index: number; fullMatch: string; title: string }[] = [];
+
+    let match: RegExpExecArray | null;
+    while ((match = splitRegex.exec(html)) !== null) {
+      headings.push({
+        index: match.index,
+        fullMatch: match[0],
+        title: match[1].replace(/<[^>]+>/g, '').trim()
+      });
+    }
+
+    // Filter out headings with very long titles (likely not real headings — e.g. table cell content)
+    const realHeadings = headings.filter(h => h.title.length > 0 && h.title.length < 150);
+
+    if (realHeadings.length === 0) {
+      return [{
+        title: 'Document Content',
+        content_html: html,
+        order_index: 0
+      }];
+    }
+
+    const sections: ExtractedSection[] = [];
+
+    // Content before the first heading becomes "About" / preamble
+    const preamble = html.substring(0, realHeadings[0].index).trim();
+    if (preamble.length > 0) {
+      const textContent = preamble.replace(/<[^>]+>/g, '').trim();
+      if (textContent.length > 20) {
         sections.push({
           title: 'About',
-          content_html: contentBeforeFirstHeading,
+          content_html: preamble,
           order_index: 0
         });
       }
     }
 
-    // Create a section for each heading
-    for (let i = 0; i < matches.length; i++) {
-      const current = matches[i];
-      const nextIndex = i + 1 < matches.length ? matches[i + 1].index : html.length;
+    // Create a section for each top-level heading
+    for (let i = 0; i < realHeadings.length; i++) {
+      const current = realHeadings[i];
+      const nextIndex = i + 1 < realHeadings.length ? realHeadings[i + 1].index : html.length;
 
-      // Get all content between this heading and the next one
-      // Find the end of the current heading tag first
-      const headingEndRegex = new RegExp(`<\\/h${current.level}>`, 'i');
-      const headAfter = html.substring(current.index);
-      const headEnd = headingEndRegex.exec(headAfter);
-      const contentStart = headEnd
-        ? current.index + headEnd.index + headEnd[0].length
-        : current.index;
-
+      // Content starts after the closing tag of the current heading
+      const contentStart = current.index + current.fullMatch.length;
       const contentHtml = html.substring(contentStart, nextIndex).trim();
 
       sections.push({
@@ -145,8 +160,7 @@ export class DocumentUploadService {
 
   /**
    * Splits PDF plain text into sections based on common heading patterns.
-   * Looks for numbered sections (e.g., "1. Introduction", "2.1 Methods")
-   * and ALL-CAPS lines as potential headings.
+   * Only splits on the TOP-LEVEL structure (numbered chapters, Annex, etc.)
    */
   splitPdfTextIntoSections(text: string): ExtractedSection[] {
     if (!text || text.trim().length === 0) return [];
@@ -156,13 +170,12 @@ export class DocumentUploadService {
     let currentTitle = 'Document Content';
     let currentLines: string[] = [];
 
-    const headingPatterns = [
-      /^(\d+\.?\s+[A-Z])/,                    // "1. Introduction" or "1 Introduction"
-      /^(\d+\.\d+\.?\s+)/,                     // "2.1 Methods"
-      /^(Chapter\s+\d+)/i,                     // "Chapter 1"
-      /^(Annex\s+\d+)/i,                       // "Annex 1"
-      /^(Appendix\s+[A-Z0-9])/i,              // "Appendix A"
-      /^(EXECUTIVE SUMMARY|INTRODUCTION|METHODS|METHODOLOGY|RECOMMENDATIONS|RESULTS|DISCUSSION|CONCLUSION|CONCLUSIONS|REFERENCES|BIBLIOGRAPHY|ACKNOWLEDGEMENTS|ABBREVIATIONS|ABSTRACT|SUMMARY|FOREWORD|PREFACE)/i,
+    // Patterns for TOP-LEVEL headings only
+    const topLevelPatterns = [
+      /^(\d+)\s+[A-Z]/,                                // "1 Introduction", "2 Methods"
+      /^(Annex\s+\d+)/i,                               // "Annex 1."
+      /^(Appendix\s+[A-Z0-9])/i,                       // "Appendix A"
+      /^(EXECUTIVE SUMMARY|INTRODUCTION|METHODS|METHODOLOGY|RECOMMENDATIONS|ACKNOWLEDGEMENTS|ABBREVIATIONS|ABSTRACT|FOREWORD|PREFACE)/i,
     ];
 
     for (const line of lines) {
@@ -173,16 +186,11 @@ export class DocumentUploadService {
       }
 
       let isHeading = false;
-      for (const pattern of headingPatterns) {
+      for (const pattern of topLevelPatterns) {
         if (pattern.test(trimmed) && trimmed.length < 120) {
           isHeading = true;
           break;
         }
-      }
-
-      // Also detect ALL-CAPS lines that are short enough to be headings
-      if (!isHeading && trimmed.length > 3 && trimmed.length < 80 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) {
-        isHeading = true;
       }
 
       if (isHeading) {
@@ -222,7 +230,6 @@ export class DocumentUploadService {
       }
     }
 
-    // If we only got one section, return it as-is
     return sections;
   }
 
