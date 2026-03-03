@@ -34,7 +34,7 @@ export class CoiDeclaration {
   @Column({ type: 'text', nullable: true })
   personal_details: string;
 
-  @Column({ type: 'datetime' })
+  @Column({ type: 'timestamp' })
   declaration_date: Date;
 
   @Column()

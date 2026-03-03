@@ -28,9 +28,9 @@ export class GuidelineMember {
   @Column({ type: 'json', nullable: true })
   assigned_sections: any;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   invited_at: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   accepted_at: Date;
 }

@@ -24,10 +24,10 @@ export class DelphiRound {
   @Column({ default: DelphiStatus.OPEN })
   status: DelphiStatus;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   opens_at: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   closes_at: Date;
 
   @CreateDateColumn()

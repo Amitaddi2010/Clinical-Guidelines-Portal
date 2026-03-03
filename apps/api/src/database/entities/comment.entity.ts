@@ -39,7 +39,7 @@ export class Comment {
   @JoinColumn({ name: 'resolved_by' })
   resolved_by: User;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   resolved_at: Date;
 
   @CreateDateColumn()

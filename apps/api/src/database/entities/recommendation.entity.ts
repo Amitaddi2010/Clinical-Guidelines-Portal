@@ -73,7 +73,7 @@ export class Recommendation {
   @Column({ default: '1.0' })
   version: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   published_at: Date;
 
   @CreateDateColumn()

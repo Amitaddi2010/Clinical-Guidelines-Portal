@@ -47,7 +47,7 @@ export class Guideline {
   @Column({ type: 'text', nullable: true })
   methodology: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   expiry_date: Date;
 
   @Column({ default: false })
@@ -56,7 +56,7 @@ export class Guideline {
   @Column({ default: 'en' })
   language: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   published_at: Date;
 
   @OneToMany(() => Section, section => section.guideline)
