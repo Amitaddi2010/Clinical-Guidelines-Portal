@@ -41,13 +41,13 @@ export class Recommendation {
   @Column({ type: 'text' })
   text: string;
 
-  @Column()
+  @Column({ type: 'enum', enum: RecommendationStrength })
   strength: RecommendationStrength;
 
-  @Column({ nullable: true })
+  @Column({ type: 'enum', enum: RecommendationDirection, nullable: true })
   direction: RecommendationDirection;
 
-  @Column({ nullable: true })
+  @Column({ type: 'enum', enum: EvidenceLevel, nullable: true })
   evidence_level: EvidenceLevel;
 
   @Column({ type: 'text', nullable: true })

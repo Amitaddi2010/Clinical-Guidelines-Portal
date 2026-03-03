@@ -57,7 +57,7 @@ export class Reference {
   @Column({ nullable: true })
   short_name: string;
 
-  @Column({ default: ReferenceType.OTHER })
+  @Column({ type: 'enum', enum: ReferenceType, default: ReferenceType.OTHER })
   reference_type: ReferenceType;
 
   @CreateDateColumn()

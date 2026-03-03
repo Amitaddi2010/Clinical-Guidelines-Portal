@@ -31,7 +31,7 @@ export class Pico {
   @Column({ type: 'text', nullable: true })
   timeframe: string;
 
-  @Column({ default: PicoImportance.IMPORTANT })
+  @Column({ type: 'enum', enum: PicoImportance, default: PicoImportance.IMPORTANT })
   importance: PicoImportance;
 
   @CreateDateColumn()

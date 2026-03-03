@@ -20,7 +20,7 @@ export class AuditLog {
   @Column()
   entity_id: string;
 
-  @Column()
+  @Column({ type: 'enum', enum: AuditAction })
   action: AuditAction;
 
   @Column({ type: 'json', nullable: true })

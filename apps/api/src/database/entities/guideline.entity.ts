@@ -29,7 +29,7 @@ export class Guideline {
   @Column()
   department: string;
 
-  @Column({ default: GuidelineStatus.DRAFT })
+  @Column({ type: 'enum', enum: GuidelineStatus, default: GuidelineStatus.DRAFT })
   status: GuidelineStatus;
 
   @Column({ default: '1.0' })

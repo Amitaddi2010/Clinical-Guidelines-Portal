@@ -22,7 +22,7 @@ export class GuidelineMember {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
+  @Column({ type: 'enum', enum: MemberRole })
   role: MemberRole;
 
   @Column({ type: 'json', nullable: true })

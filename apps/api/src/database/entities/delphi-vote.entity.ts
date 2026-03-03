@@ -29,7 +29,7 @@ export class DelphiVote {
   @JoinColumn({ name: 'voter_id' })
   voter: User;
 
-  @Column()
+  @Column({ type: 'enum', enum: VoteType })
   vote: VoteType;
 
   @Column({ type: 'text', nullable: true })

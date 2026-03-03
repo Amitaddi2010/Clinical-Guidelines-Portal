@@ -21,7 +21,7 @@ export class DelphiRound {
   @Column()
   title: string;
 
-  @Column({ default: DelphiStatus.OPEN })
+  @Column({ type: 'enum', enum: DelphiStatus, default: DelphiStatus.OPEN })
   status: DelphiStatus;
 
   @Column({ type: 'timestamp', nullable: true })

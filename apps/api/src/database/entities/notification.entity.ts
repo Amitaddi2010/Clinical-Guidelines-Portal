@@ -19,7 +19,7 @@ export class Notification {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
+  @Column({ type: 'enum', enum: NotificationType })
   type: NotificationType;
 
   @Column()
