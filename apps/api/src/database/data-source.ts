@@ -21,7 +21,10 @@ export const dataSourceOptions: DataSourceOptions = useSqlite
         database: process.env.DB_NAME || 'cgp',
         entities: [__dirname + '/entities/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        synchronize: false,
+        synchronize: process.env.DB_SYNCHRONIZE === 'true',
+        ssl: process.env.DB_SSL === 'true' || (process.env.DB_HOST || '').includes('.neon.tech')
+            ? { rejectUnauthorized: false }
+            : false,
     };
 
 const dataSource = new DataSource(dataSourceOptions);
