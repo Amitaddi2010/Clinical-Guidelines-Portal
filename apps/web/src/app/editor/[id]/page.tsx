@@ -6,6 +6,7 @@ import { ReferencesTab } from "@/components/editor/ReferencesTab";
 import { Settings, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { API_BASE } from "@/lib/api";
 
 export default function GuidelineEditor() {
     const params = useParams();
@@ -20,7 +21,7 @@ export default function GuidelineEditor() {
         setIsPublishing(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}`, {
+            const res = await fetch(`${API_BASE}/guidelines/${guideline.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ status: newStatus })
@@ -39,7 +40,7 @@ export default function GuidelineEditor() {
         const fetchGuideline = async () => {
             try {
                 const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-                const res = await fetch(`http://localhost:3000/guidelines/${params.id}`, {
+                const res = await fetch(`${API_BASE}/guidelines/${params.id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error("Failed to fetch guideline");

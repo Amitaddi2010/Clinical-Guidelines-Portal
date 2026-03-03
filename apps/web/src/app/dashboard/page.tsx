@@ -32,7 +32,7 @@ export default function AdminDashboard() {
 
   const fetchGuidelines = async () => {
     try {
-      const response = await fetch('http://localhost:3000/guidelines');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines`);
       if (response.ok) {
         const data = await response.json();
         setGuidelines(data);
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) return;
     try {
-      const response = await fetch(`http://localhost:3000/guidelines/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${id}`, { method: 'DELETE' });
       if (response.ok) {
         setGuidelines(prev => prev.filter(g => g.id !== id));
       } else {
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
 
   const handleStatusChange = async (guidelineId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/guidelines/${guidelineId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guidelineId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -396,7 +396,7 @@ export default function AdminDashboard() {
                         formData.append('title', title);
                         formData.append('department', department);
 
-                        const response = await fetch('http://localhost:3000/guidelines/create-from-document', {
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/create-from-document`, {
                           method: 'POST',
                           headers: {
                             'Authorization': `Bearer ${token}`
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
                       }
 
                       try {
-                        const response = await fetch('http://localhost:3000/guidelines', {
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',

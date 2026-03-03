@@ -20,7 +20,7 @@ export default function GuidelinesList() {
 
     const fetchGuidelines = async () => {
         try {
-            const response = await fetch('http://localhost:3000/guidelines');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines`);
             const data = await response.json();
             setGuidelines(data);
         } catch (error) {

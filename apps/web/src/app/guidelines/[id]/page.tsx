@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from 'next/link';
+import { API_BASE } from "@/lib/api";
 
 export default function GuidelineReader() {
   const params = useParams();
@@ -25,7 +26,7 @@ export default function GuidelineReader() {
     const fetchGuideline = async () => {
       try {
         const id = params.id as string;
-        const response = await fetch(`http://localhost:3000/guidelines/${id}`);
+        const response = await fetch(`${API_BASE}/guidelines/${id}`);
         if (!response.ok) throw new Error('Guideline not found');
         const data = await response.json();
         // Sort sections by order_index

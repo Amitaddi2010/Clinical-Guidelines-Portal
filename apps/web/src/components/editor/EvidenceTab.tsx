@@ -35,7 +35,7 @@ export function EvidenceTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/evidence/picos/${activePicoId}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/evidence/picos/${activePicoId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ [field]: value })
@@ -54,7 +54,7 @@ export function EvidenceTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/evidence/recommendations/${newPicoRecId}/picos`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/evidence/recommendations/${newPicoRecId}/picos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ population: "New Population", intervention: "New Intervention", comparator: "", outcome: "" })
@@ -81,7 +81,7 @@ export function EvidenceTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/evidence/picos/${activePicoId}/evidence-summaries`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/evidence/picos/${activePicoId}/evidence-summaries`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ outcome_name: "New Outcome", certainty: "LOW", importance: "IMPORTANT" })
@@ -107,7 +107,7 @@ export function EvidenceTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/evidence/evidence-summaries/${summaryId}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/evidence/evidence-summaries/${summaryId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ [field]: value })
@@ -135,7 +135,7 @@ export function EvidenceTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/evidence/evidence-summaries/${summaryId}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/evidence/evidence-summaries/${summaryId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

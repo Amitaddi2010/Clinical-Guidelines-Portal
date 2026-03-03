@@ -16,7 +16,7 @@ interface Guideline {
 
 async function getPublishedGuidelines(): Promise<Guideline[]> {
   try {
-    const res = await fetch('http://localhost:3000/guidelines?status=published', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines?status=published`, {
       next: { revalidate: 60 }, // revalidate every 60 seconds
     });
     if (!res.ok) return [];

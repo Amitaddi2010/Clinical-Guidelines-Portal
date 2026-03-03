@@ -33,7 +33,7 @@ export function RecommendationsTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/sections/${activeSectionId}/content`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/sections/${activeSectionId}/content`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export function RecommendationsTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/sections/${activeSectionId}/recommendations/${recId}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/sections/${activeSectionId}/recommendations/${recId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export function RecommendationsTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/sections/${activeSectionId}/recommendations`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/sections/${activeSectionId}/recommendations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -14,7 +14,7 @@ export function ReferencesTab({ guideline }: { guideline: any }) {
         const fetchRefs = async () => {
             try {
                 const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-                const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/references`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/references`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -35,7 +35,7 @@ export function ReferencesTab({ guideline }: { guideline: any }) {
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
             const payload = customData || { title: "New Reference", authors: [], year: new Date().getFullYear(), reference_type: "other" };
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/references`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/references`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
@@ -53,7 +53,7 @@ export function ReferencesTab({ guideline }: { guideline: any }) {
     const saveReference = async (id: string, field: string, value: any) => {
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/references/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/references/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ [field]: value })
@@ -70,7 +70,7 @@ export function ReferencesTab({ guideline }: { guideline: any }) {
         setIsSaving(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const res = await fetch(`http://localhost:3000/guidelines/${guideline.id}/references/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines/${guideline.id}/references/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
