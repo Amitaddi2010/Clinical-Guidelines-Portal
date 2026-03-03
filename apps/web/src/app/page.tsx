@@ -14,11 +14,17 @@ interface Guideline {
   published_at: string | null;
 }
 
+export const dynamic = 'force-dynamic';
+
 async function getPublishedGuidelines(): Promise<Guideline[]> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/guidelines?status=published`, {
-      next: { revalidate: 60 }, // revalidate every 60 seconds
+      signal: controller.signal,
+      cache: 'no-store',
     });
+    clearTimeout(timeout);
     if (!res.ok) return [];
     const data = await res.json();
     return data.slice(0, 3);
