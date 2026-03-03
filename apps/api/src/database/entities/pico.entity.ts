@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Recommendation } from './recommendation.entity';
+import { EvidenceSummary } from './evidence-summary.entity';
 
 export enum PicoImportance {
   CRITICAL = 'critical',
@@ -33,6 +34,9 @@ export class Pico {
 
   @Column({ type: 'enum', enum: PicoImportance, default: PicoImportance.IMPORTANT })
   importance: PicoImportance;
+
+  @OneToMany(() => EvidenceSummary, evidence_summary => evidence_summary.pico)
+  evidence_summaries: EvidenceSummary[];
 
   @CreateDateColumn()
   created_at: Date;
