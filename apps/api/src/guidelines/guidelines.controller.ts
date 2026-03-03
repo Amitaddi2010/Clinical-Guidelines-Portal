@@ -20,6 +20,21 @@ export class GuidelinesController {
         return { message: 'Guidelines API is working', timestamp: new Date().toISOString() };
     }
 
+    @Get('debug-sync')
+    async debugSync() {
+        try {
+            const { dataSourceOptions } = require('../database/data-source');
+            const { DataSource } = require('typeorm');
+            const ds = new DataSource(dataSourceOptions);
+            await ds.initialize();
+            await ds.synchronize(); // Force schema creation
+            await ds.destroy();
+            return { message: 'Database tables synchronized successfully!' };
+        } catch (error) {
+            return { error: error.message, stack: error.stack };
+        }
+    }
+
     @Get()
     async findAll(@Query('status') status?: GuidelineStatus) {
         try {
