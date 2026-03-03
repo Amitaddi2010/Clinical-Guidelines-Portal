@@ -27,7 +27,11 @@ export class User {
   @Column({ nullable: true })
   department: string;
 
-  @Column({ default: UserRole.AUTHOR })
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.AUTHOR
+  })
   role: UserRole;
 
   @Column({ nullable: true, unique: true })
