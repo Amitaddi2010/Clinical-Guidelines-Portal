@@ -18,9 +18,9 @@ export class GuidelinesService {
 
     async findAll(status?: GuidelineStatus): Promise<Guideline[]> {
         const query = this.guidelinesRepository.createQueryBuilder('guideline')
-            .leftJoinAndSelect('guideline.sections', 'sections')
+            // Remove the automatic heavy join to sections
             .orderBy('guideline.published_at', 'DESC')
-            .addOrderBy('sections.order_index', 'ASC');
+            .addOrderBy('guideline.created_at', 'DESC');
 
         if (status) {
             query.where('guideline.status = :status', { status });
@@ -32,7 +32,7 @@ export class GuidelinesService {
     async findOne(id: string): Promise<Guideline> {
         const guideline = await this.guidelinesRepository.findOne({
             where: { id },
-            relations: ['sections', 'sections.recommendations', 'sections.recommendations.picos', 'sections.recommendations.references'],
+            relations: ['sections', 'sections.recommendations', 'sections.recommendations.picos', 'sections.recommendations.picos.evidence_summaries', 'sections.recommendations.references'],
         });
         if (!guideline) {
             throw new NotFoundException(`Guideline with ID ${id} not found`);
@@ -43,18 +43,19 @@ export class GuidelinesService {
     async create(createData: Partial<Guideline>, user: User | null): Promise<Guideline> {
         const guideline = this.guidelinesRepository.create({
             ...createData,
+            icmr_ref_no: createData.icmr_ref_no || `ICMR-${Date.now()}`,
             status: GuidelineStatus.DRAFT,
         });
         return this.guidelinesRepository.save(guideline);
     }
 
-    async createFromDocument(file: any, user: User | null, title?: string): Promise<Guideline> {
+    async createFromDocument(file: any, user: User | null, title?: string, department?: string): Promise<Guideline> {
         const extracted = await this.documentUploadService.processDocument(file);
 
         const guideline = this.guidelinesRepository.create({
             title: title || file.originalname.replace(/\.[^/.]+$/, ''),
             description: extracted.text.substring(0, 500) + (extracted.text.length > 500 ? '...' : ''),
-            department: 'General',
+            department: department || 'General',
             icmr_ref_no: `ICMR-${Date.now()}`,
             status: GuidelineStatus.DRAFT,
         });
@@ -89,7 +90,11 @@ export class GuidelinesService {
     }
 
     async update(id: string, updateData: Partial<Guideline>, user: User): Promise<Guideline> {
-        const guideline = await this.findOne(id);
+        // Use a simple find without loading nested relations to avoid cascade save issues
+        const guideline = await this.guidelinesRepository.findOne({ where: { id } });
+        if (!guideline) {
+            throw new NotFoundException(`Guideline with ID ${id} not found`);
+        }
         this.guidelinesRepository.merge(guideline, updateData);
         return this.guidelinesRepository.save(guideline);
     }

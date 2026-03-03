@@ -39,7 +39,7 @@ export class AuthService {
 
     generateTokens(user: User) {
         const payload = { email: user.email, sub: user.id, role: user.role };
-        const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' }); // 15 min expiry per req
+        const accessToken = this.jwtService.sign(payload, { expiresIn: '24h' }); // 24 hour expiry for dev
         const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' }); // 7 days expiry per req
 
         return {

@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight, FileText, Anchor, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { RecommendationVote } from "./RecommendationVote";
 
 type StrengthBadgeProps = {
     strength: 'strong_for' | 'conditional_for' | 'conditional_against' | 'strong_against' | 'best_practice';
@@ -73,6 +74,28 @@ export interface Recommendation {
     references?: Reference[];
 }
 
+const EffectEstimateText = ({ text }: { text: string }) => {
+    if (!text) return <span>--</span>;
+
+    // Highlight statistical tags like RR, OR, MD, HR, RD
+    const parts = text.split(/\b(RR|OR|MD|HR|RD)\b/g);
+
+    return (
+        <div className="font-medium text-slate-900 leading-relaxed">
+            {parts.map((part, i) => {
+                if (['RR', 'OR', 'MD', 'HR', 'RD'].includes(part)) {
+                    return (
+                        <span key={i} className="inline-block bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1.5 py-0.5 rounded mr-1">
+                            {part}
+                        </span>
+                    );
+                }
+                return <span key={i}>{part}</span>;
+            })}
+        </div>
+    );
+};
+
 export function RecommendationBlock({ recommendation }: { recommendation: Recommendation }) {
     const [expandedLayer, setExpandedLayer] = useState<number>(1);
 
@@ -84,7 +107,7 @@ export function RecommendationBlock({ recommendation }: { recommendation: Recomm
                 onClick={() => setExpandedLayer(expandedLayer === 1 ? 4 : 1)}
             >
                 <div className="flex justify-between items-start gap-4 mb-3">
-                    <div dangerouslySetInnerHTML={{ __html: recommendation.text || '' }} className="text-lg font-medium text-slate-900 prose prose-slate" />
+                    <div dangerouslySetInnerHTML={{ __html: recommendation.text || '' }} className="text-lg font-medium text-slate-900 prose prose-slate prose-p:leading-relaxed empty:prose-p:hidden max-w-none" />
                     <div className="shrink-0">
                         <StrengthBadge strength={recommendation.strength} />
                     </div>
@@ -106,25 +129,47 @@ export function RecommendationBlock({ recommendation }: { recommendation: Recomm
                 </div>
             </div>
 
-            {/* Layer 2: Rationale and Remarks */}
+            {/* Layer 2: Rationale, Remarks, and Judgements */}
             {expandedLayer >= 2 && (
                 <div className="p-5 bg-slate-50 border-t border-slate-200">
-                    <h4 className="font-bold text-slate-800 mb-2 font-serif">Rationale</h4>
-                    <div dangerouslySetInnerHTML={{ __html: recommendation.rationale || '' }} className="prose prose-sm prose-slate max-w-none mb-4" />
+                    <div className="mb-6">
+                        <h4 className="font-bold text-navy-900 tracking-tight mb-3">Panel Judgements (Evidence to Decision)</h4>
+                        <div className="flex flex-wrap gap-2 text-xs font-medium">
+                            <div className="flex items-center gap-2 bg-white border border-slate-200 p-2 rounded shadow-sm">
+                                <span className="text-slate-500">Certainty:</span>
+                                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded capitalize">{recommendation.evidence_level.replace('_', ' ')}</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white border border-slate-200 p-2 rounded shadow-sm">
+                                <span className="text-slate-500">Balance of effects:</span>
+                                <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">Favors Intervention</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white border border-slate-200 p-2 rounded shadow-sm">
+                                <span className="text-slate-500">Values &amp; preferences:</span>
+                                <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded">No substantial variability</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    {recommendation.remarks && (
-                        <>
-                            <h4 className="font-bold text-slate-800 mb-2 font-serif">Remarks</h4>
-                            <div dangerouslySetInnerHTML={{ __html: recommendation.remarks || '' }} className="prose prose-sm prose-slate max-w-none text-slate-600 italic" />
-                        </>
-                    )}
+                    <RecommendationVote recommendationId={recommendation.id} />
 
-                    <div className="mt-4 pt-3 border-t border-slate-200 text-center">
-                        {expandedLayer === 2 ? (
-                            <button onClick={() => setExpandedLayer(3)} className="text-navy-600 hover:text-navy-800 text-sm font-medium">
-                                Show Evidence Summary (PICO & SoF) ↓
-                            </button>
-                        ) : null}
+                    <div className="mt-8">
+                        <h4 className="font-bold text-navy-900 tracking-tight mb-2">Rationale</h4>
+                        <div dangerouslySetInnerHTML={{ __html: recommendation.rationale || '' }} className="prose prose-sm prose-slate max-w-none mb-4 prose-p:leading-relaxed empty:prose-p:hidden text-slate-700" />
+
+                        {recommendation.remarks && (
+                            <>
+                                <h4 className="font-bold text-navy-900 tracking-tight mb-2">Remarks</h4>
+                                <div dangerouslySetInnerHTML={{ __html: recommendation.remarks || '' }} className="prose prose-sm prose-slate max-w-none text-slate-600 italic prose-p:leading-relaxed empty:prose-p:hidden" />
+                            </>
+                        )}
+
+                        <div className="mt-4 pt-3 border-t border-slate-200 text-center">
+                            {expandedLayer === 2 ? (
+                                <button onClick={() => setExpandedLayer(3)} className="text-navy-600 hover:text-navy-800 text-sm font-medium">
+                                    Show Evidence Summary (PICO & SoF) ↓
+                                </button>
+                            ) : null}
+                        </div>
                     </div>
                 </div>
             )}
@@ -132,7 +177,7 @@ export function RecommendationBlock({ recommendation }: { recommendation: Recomm
             {/* Layer 3: PICO and SoF Table */}
             {expandedLayer >= 3 && recommendation.picos?.map((pico: Pico) => (
                 <div key={pico.id} className="p-5 bg-white border-t border-slate-200">
-                    <h4 className="font-bold text-slate-800 mb-3 font-serif flex items-center gap-2">
+                    <h4 className="font-bold text-navy-900 tracking-tight mb-3 flex items-center gap-2">
                         <Anchor className="w-4 h-4 text-slate-400" /> Evidence Profile
                     </h4>
 
@@ -160,8 +205,8 @@ export function RecommendationBlock({ recommendation }: { recommendation: Recomm
                                     <tr key={idx} className="border-b hover:bg-slate-50">
                                         <td className="px-4 py-3 font-medium text-slate-800">{outcome.name}</td>
                                         <td className="px-4 py-3">
-                                            <div className="font-medium text-slate-900">{outcome.effect_estimate}</div>
-                                            <div className="text-[10px] text-slate-500">{outcome.confidence_interval}</div>
+                                            <EffectEstimateText text={outcome.effect_estimate} />
+                                            <div className="text-[10px] text-slate-500 mt-1">{outcome.confidence_interval}</div>
                                         </td>
                                         <td className="px-4 py-3 text-slate-600">
                                             {outcome.no_of_participants || '--'} ({outcome.no_of_studies || '--'})
@@ -213,6 +258,6 @@ export function RecommendationBlock({ recommendation }: { recommendation: Recomm
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     );
 }

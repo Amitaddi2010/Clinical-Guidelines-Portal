@@ -11,10 +11,10 @@ export function Footer() {
                 <div>
                     <h4 className="text-sm font-bold uppercase tracking-wider mb-4 border-b border-white/20 pb-2">Quick Links</h4>
                     <ul className="space-y-2 text-sm text-slate-300">
-                        <li><a href="#" className="hover:text-white transition-colors">All Guidelines</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">By Department</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Living Guidelines</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Methodology</a></li>
+                        <li><a href="/guidelines" className="hover:text-white transition-colors">All Guidelines</a></li>
+                        <li><a href="/guidelines?view=departments" className="hover:text-white transition-colors">By Department</a></li>
+                        <li><a href="/guidelines?status=living" className="hover:text-white transition-colors">Living Guidelines</a></li>
+                        <li><a href="/methodology" className="hover:text-white transition-colors">Methodology</a></li>
                     </ul>
                 </div>
                 <div>

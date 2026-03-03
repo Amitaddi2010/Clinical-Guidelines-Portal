@@ -1,7 +1,7 @@
 "use client";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
-import { Plus, MoreVertical, FileText, Search, Eye, Users, Upload, Trash2 } from "lucide-react";
+import { Search, ChevronDown, Filter, FileText, ArrowUpRight, TrendingUp, Users, CheckCircle, Clock, Check, Eye, Trash2, Upload, AlertCircle, Edit, Plus, MoreVertical } from 'lucide-react';
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,8 @@ export default function AdminDashboard() {
   const [guidelines, setGuidelines] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('Epidemiology');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     if (hasHydrated && (!isAuthenticated || !user)) {
@@ -58,17 +60,52 @@ export default function AdminDashboard() {
   if (!hasHydrated || (isAuthenticated && !user)) return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading session...</div>;
   if (!user) return null;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Published': return 'bg-green-100 text-green-800 border-green-300';
-      case 'In Review': return 'bg-amber-100 text-amber-800 border-amber-300';
-      case 'Draft': return 'bg-slate-100 text-slate-800 border-slate-300';
-      case 'Living': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'Approved': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      case 'Archived': return 'bg-red-100 text-red-800 border-red-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
-    }
+  const STATUS_OPTIONS = [
+    { value: 'draft', label: 'Draft', color: 'bg-slate-100 text-slate-700 border-slate-300' },
+    { value: 'in_review', label: 'In Review', color: 'bg-amber-100 text-amber-800 border-amber-300' },
+    { value: 'approved', label: 'Approved', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+    { value: 'published', label: 'Published', color: 'bg-green-100 text-green-800 border-green-300' },
+    { value: 'living', label: 'Living', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+    { value: 'archived', label: 'Archived', color: 'bg-red-100 text-red-800 border-red-300' },
+  ];
+
+  const getStatusInfo = (status: string) => {
+    return STATUS_OPTIONS.find(s => s.value === status) || STATUS_OPTIONS[0];
   };
+
+  const handleStatusChange = async (guidelineId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/guidelines/${guidelineId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (response.ok) {
+        setGuidelines(prev => prev.map(g => g.id === guidelineId ? { ...g, status: newStatus } : g));
+      } else if (response.status === 401) {
+        alert('Your session has expired. Please log in again.');
+        useAuthStore.getState().logout();
+        router.push('/login');
+        return;
+      } else {
+        const errorBody = await response.text();
+        console.error('Status update failed:', response.status, errorBody);
+        alert(`Failed to update status: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Status change error:', error);
+      alert('Failed to update status: Network error');
+    }
+    setOpenMenuId(null);
+  };
+
+
+  const filteredGuidelines = guidelines
+    .filter(g => statusFilter === 'all' || g.status === statusFilter)
+    .filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -105,7 +142,23 @@ export default function AdminDashboard() {
       </div>
 
       <main className="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
-        <h2 className="text-lg font-bold text-slate-800 mb-4 font-serif">My Guidelines</h2>
+        {/* Status Filter Tabs */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-slate-800 font-serif">My Guidelines</h2>
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${statusFilter === 'all' ? 'bg-white text-navy-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >All</button>
+            {STATUS_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setStatusFilter(opt.value)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${statusFilter === opt.value ? 'bg-white text-navy-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >{opt.label}</button>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {guidelines.length === 0 ? (
@@ -125,47 +178,79 @@ export default function AdminDashboard() {
               </button>
             </div>
           ) : (
-            guidelines.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase())).map((guideline) => (
-              <div key={guideline.id} className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow relative group flex flex-col h-full">
-                <div className="p-5 flex-grow">
-                  <div className="flex justify-between items-start mb-2 gap-4">
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${getStatusColor(guideline.status)}`}>
-                      {guideline.status}
-                    </span>
-                    <button className="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
+            filteredGuidelines.map((guideline) => {
+              const statusInfo = getStatusInfo(guideline.status);
+              return (
+                <div key={guideline.id} className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow relative group flex flex-col h-full">
+                  <div className="p-5 flex-grow">
+                    <div className="flex justify-between items-start mb-2 gap-4">
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                      {/* More menu with status change */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === guideline.id ? null : guideline.id)}
+                          className="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                        {openMenuId === guideline.id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                            <div className="absolute right-0 top-8 w-52 bg-white rounded-lg shadow-xl border border-slate-200 z-20 py-1 animate-in fade-in zoom-in-95 duration-150">
+                              <div className="px-3 py-2 border-b border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Status</p>
+                              </div>
+                              {STATUS_OPTIONS.map(opt => (
+                                <button
+                                  key={opt.value}
+                                  onClick={() => handleStatusChange(guideline.id, opt.value)}
+                                  className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 transition-colors ${guideline.status === opt.value ? 'text-navy-700 font-semibold bg-navy-50' : 'text-slate-600'
+                                    }`}
+                                >
+                                  <span className={`w-2 h-2 rounded-full ${opt.color.split(' ')[0].replace('bg-', 'bg-')}`} />
+                                  {opt.label}
+                                  {guideline.status === opt.value && <span className="ml-auto text-navy-500 text-xs">✓</span>}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-1 leading-snug">
+                      {guideline.title}
+                    </h3>
+                    <div className="text-xs text-slate-500 font-medium mb-4">
+                      <span className="text-navy-600">v{guideline.version}</span> • {guideline.department || guideline.dept}
+                      {guideline.is_living && <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-200 rounded text-[10px] font-bold">LIVING</span>}
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-1 leading-snug">
-                    {guideline.title}
-                  </h3>
-                  <div className="text-xs text-slate-500 font-medium mb-4">
-                    <span className="text-navy-600">v{guideline.version}</span> • {guideline.dept}
+                  <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500 rounded-b-lg">
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1.5" title="Updated Date">
+                        <FileText className="w-3.5 h-3.5" /> {guideline.updated_at ? new Date(guideline.updated_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex gap-4">
+                      <Link href={`/guidelines/${guideline.id}`} className="flex items-center gap-1 font-medium text-navy-600 hover:text-navy-800 hover:underline">
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </Link>
+                      <Link href={`/editor/${guideline.id}`} className="flex items-center gap-1 font-medium text-emerald-600 hover:text-emerald-800 hover:underline">
+                        <Edit className="w-3.5 h-3.5" /> Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(guideline.id, guideline.title)}
+                        className="flex items-center gap-1 font-medium text-red-500 hover:text-red-700 hover:underline"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500 rounded-b-lg">
-                  <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1.5" title="Updated Date">
-                      <FileText className="w-3.5 h-3.5" /> {guideline.updated_at}
-                    </span>
-                    <span className="flex items-center gap-1.5" title="Team members">
-                      <Users className="w-3.5 h-3.5" /> {guideline.authors} Authors
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href={`/guidelines/${guideline.id}`} className="flex items-center gap-1 font-medium text-navy-600 hover:text-navy-800 hover:underline">
-                      <Eye className="w-3.5 h-3.5" /> View
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(guideline.id, guideline.title)}
-                      className="flex items-center gap-1 font-medium text-red-500 hover:text-red-700 hover:underline ml-2"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </main>
@@ -267,6 +352,20 @@ export default function AdminDashboard() {
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-navy-500 outline-none transition-all"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Primary Department</label>
+                    <select
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-navy-500 transition-all"
+                    >
+                      <option>Epidemiology</option>
+                      <option>Non-Communicable Diseases</option>
+                      <option>Communicable Diseases</option>
+                      <option>Reproductive Health</option>
+                      <option>Bioethics</option>
+                    </select>
+                  </div>
                 </div>
               )}
 
@@ -295,9 +394,13 @@ export default function AdminDashboard() {
                         const formData = new FormData();
                         formData.append('file', selectedFile);
                         formData.append('title', title);
+                        formData.append('department', department);
 
                         const response = await fetch('http://localhost:3000/guidelines/create-from-document', {
                           method: 'POST',
+                          headers: {
+                            'Authorization': `Bearer ${token}`
+                          },
                           body: formData,
                         });
 
@@ -311,7 +414,7 @@ export default function AdminDashboard() {
                         setIsCreateModalOpen(false);
                         setSelectedFile(null);
                         setTitle('');
-                        router.push(`/guidelines/${result.id}`);
+                        router.push(`/editor/${result.id}`);
                       } catch (error) {
                         console.error('Upload error:', error);
                         alert('Failed to process document');
@@ -345,7 +448,7 @@ export default function AdminDashboard() {
                         await fetchGuidelines();
                         setIsCreateModalOpen(false);
                         setTitle('');
-                        router.push(`/guidelines/${result.id}`);
+                        router.push(`/editor/${result.id}`);
                       } catch (error) {
                         console.error('Creation error:', error);
                         alert('Failed to create guideline');

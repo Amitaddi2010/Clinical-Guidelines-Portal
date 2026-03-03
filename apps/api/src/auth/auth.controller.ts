@@ -39,7 +39,11 @@ export class AuthController {
             maxAge: 15 * 60 * 1000, // 15 min memory
         });
 
-        return { message: 'Successfully authenticated via SAML', user: { id: user.id, email: user.email, role: user.role } };
+        return {
+            message: 'Successfully authenticated via SAML',
+            access_token: tokens.access_token,
+            user: { id: user.id, email: user.email, role: user.role, name: user.full_name, department: user.department },
+        };
     }
 
     @Post('logout')

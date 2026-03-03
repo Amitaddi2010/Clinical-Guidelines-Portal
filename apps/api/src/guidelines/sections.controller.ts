@@ -35,4 +35,12 @@ export class SectionsController {
     ) {
         return this.sectionsService.createRecommendation(sectionId, text);
     }
+
+    @Put(':sectionId/recommendations/:id')
+    async updateRecommendation(
+        @Param('id') id: string,
+        @Body() updateData: any, // We will accept any fields from the Recommendation entity
+    ) {
+        return this.sectionsService.updateRecommendation(id, updateData);
+    }
 }

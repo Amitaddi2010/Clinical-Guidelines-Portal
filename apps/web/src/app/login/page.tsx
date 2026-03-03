@@ -21,19 +21,30 @@ export default function LoginPage() {
 
     const handleNICLogin = async () => {
         setIsLoading(true);
-        // Simulate SAML SSO redirect/callback flow checking against the backed stub
-        setTimeout(() => {
-            // Mocking the backend token & user extraction
-            login({
-                id: 'usr_abc123',
-                email: 'author@icmr.gov.in',
-                name: 'Dr. Ananya Sharma',
-                role: 'Guideline Admin',
-                department: 'Epidemiology'
-            }, 'mock_jwt_token');
-            // After successful SSO, redirect to the dashboard
+        try {
+            const response = await fetch('http://localhost:3000/auth/saml/callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!response.ok) throw new Error('Authentication failed');
+            const data = await response.json();
+            login(
+                {
+                    id: data.user.id,
+                    email: data.user.email,
+                    name: data.user.name,
+                    role: data.user.role,
+                    department: data.user.department,
+                },
+                data.access_token
+            );
             router.push('/dashboard');
-        }, 1500);
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Login failed. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

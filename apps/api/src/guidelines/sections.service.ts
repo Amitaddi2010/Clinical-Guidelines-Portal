@@ -47,4 +47,11 @@ export class SectionsService {
         });
         return this.recommendationRepository.save(rec);
     }
+    async updateRecommendation(id: string, updateData: Partial<Recommendation>): Promise<Recommendation> {
+        const rec = await this.recommendationRepository.findOne({ where: { id } });
+        if (!rec) throw new NotFoundException('Recommendation not found');
+
+        Object.assign(rec, updateData);
+        return this.recommendationRepository.save(rec);
+    }
 }

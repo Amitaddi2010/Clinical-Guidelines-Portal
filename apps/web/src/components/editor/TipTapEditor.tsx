@@ -2,6 +2,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, List, ListOrdered, Quote, Heading2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function TipTapEditor({ content, onChange }: { content: string, onChange?: (html: string) => void }) {
   const editor = useEditor({
@@ -9,7 +10,7 @@ export function TipTapEditor({ content, onChange }: { content: string, onChange?
     content: content || '<p>Start typing your content here...</p>',
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
+      setLocalContent(editor.getHTML());
     },
     editorProps: {
       attributes: {
@@ -17,6 +18,30 @@ export function TipTapEditor({ content, onChange }: { content: string, onChange?
       },
     },
   });
+
+  const [localContent, setLocalContent] = useState(content);
+
+  // Debounce the onChange callback
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (localContent !== content) {
+        onChange?.(localContent);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [localContent, onChange, content]);
+
+  // Sync external content changes into the editor if they differ from local state
+  // (e.g. when changing the active section)
+  useEffect(() => {
+    if (editor && content !== localContent) {
+      editor.commands.setContent(content || "");
+      setLocalContent(content || "");
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;

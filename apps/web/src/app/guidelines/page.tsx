@@ -4,12 +4,14 @@ import { Footer } from "@/components/common/Footer";
 import { FileText, Search, Filter, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function GuidelinesList() {
+    const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState("");
-    const [departmentFilter, setDepartmentFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [guidelines, setGuidelines] = useState([]);
+    const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "all");
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
+    const [guidelines, setGuidelines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -77,18 +79,26 @@ export default function GuidelinesList() {
                     </div>
 
                     <div className="w-full md:w-48">
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Guideline Type</label>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Status</label>
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-navy-500 bg-white"
                         >
-                            <option value="all">All Types</option>
-                            <option value="living">Living Guidelines Only</option>
+                            <option value="all">All Statuses</option>
+                            <option value="draft">Draft</option>
+                            <option value="in_review">In Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="published">Published</option>
+                            <option value="living">Living</option>
+                            <option value="archived">Archived</option>
                         </select>
                     </div>
 
-                    <button className="px-4 py-2 bg-slate-100 border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-200 transition-colors flex items-center gap-2 h-[38px] w-full md:w-auto justify-center">
+                    <button
+                        onClick={() => { setSearchTerm(''); setDepartmentFilter('all'); setStatusFilter('all'); }}
+                        className="px-4 py-2 bg-slate-100 border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-200 transition-colors flex items-center gap-2 h-[38px] w-full md:w-auto justify-center"
+                    >
                         <Filter className="w-4 h-4" /> Clear
                     </button>
                 </div>

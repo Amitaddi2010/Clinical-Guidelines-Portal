@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from './user.entity';
 import { Section } from './section.entity';
+import { Reference } from './reference.entity';
 
 export enum GuidelineStatus {
   DRAFT = 'draft',
@@ -60,6 +61,9 @@ export class Guideline {
 
   @OneToMany(() => Section, section => section.guideline)
   sections: Section[];
+
+  @OneToMany(() => Reference, reference => reference.guideline)
+  references: Reference[];
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })

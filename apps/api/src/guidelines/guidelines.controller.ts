@@ -47,27 +47,35 @@ export class GuidelinesController {
     }
 
     @Post('create-from-document')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.GUIDELINE_ADMIN, UserRole.AUTHOR)
     @UseInterceptors(FileInterceptor('file', {
         limits: { fileSize: 100 * 1024 * 1024 },
         fileFilter: (req, file, cb) => {
-            const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf'];
+            const allowedTypes = [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/pdf',
+                'text/html'
+            ];
             if (allowedTypes.includes(file.mimetype)) {
                 cb(null, true);
             } else {
-                cb(new Error('Only DOCX and PDF files are allowed'), false);
+                cb(new Error('Only DOCX, PDF, and HTML files are allowed'), false);
             }
         }
     }))
     async createFromDocument(
         @UploadedFile() file: any,
-        @Body('title') title: string
+        @Body('title') title: string,
+        @Body('department') department: string,
+        @Req() req: any
     ) {
         if (!file) {
             throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
         }
 
         try {
-            const guideline = await this.guidelinesService.createFromDocument(file, null, title);
+            const guideline = await this.guidelinesService.createFromDocument(file, req.user, title, department);
 
             return {
                 success: true,
@@ -85,7 +93,18 @@ export class GuidelinesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.SUPER_ADMIN, UserRole.GUIDELINE_ADMIN, UserRole.AUTHOR)
     async update(@Param('id') id: string, @Body() updateData: Partial<Guideline>, @Req() req: any) {
-        return this.guidelinesService.update(id, updateData, req.user);
+        try {
+            console.log(`Updating guideline ${id} with data:`, JSON.stringify(updateData));
+            const result = await this.guidelinesService.update(id, updateData, req.user);
+            console.log(`Guideline ${id} updated successfully`);
+            return result;
+        } catch (error) {
+            console.error('Error updating guideline:', error);
+            throw new HttpException({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                error: error.message || error.toString(),
+            }, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Delete(':id')
@@ -99,11 +118,15 @@ export class GuidelinesController {
     @UseInterceptors(FileInterceptor('file', {
         limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
         fileFilter: (req, file, cb) => {
-            const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf'];
+            const allowedTypes = [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/pdf',
+                'text/html'
+            ];
             if (allowedTypes.includes(file.mimetype)) {
                 cb(null, true);
             } else {
-                cb(new Error('Only DOCX and PDF files are allowed'), false);
+                cb(new Error('Only DOCX, PDF, and HTML files are allowed'), false);
             }
         }
     }))
@@ -135,11 +158,15 @@ export class GuidelinesController {
     @UseInterceptors(FileInterceptor('file', {
         limits: { fileSize: 100 * 1024 * 1024 },
         fileFilter: (req, file, cb) => {
-            const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf'];
+            const allowedTypes = [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/pdf',
+                'text/html'
+            ];
             if (allowedTypes.includes(file.mimetype)) {
                 cb(null, true);
             } else {
-                cb(new Error('Only DOCX and PDF files are allowed'), false);
+                cb(new Error('Only DOCX, PDF, and HTML files are allowed'), false);
             }
         }
     }))

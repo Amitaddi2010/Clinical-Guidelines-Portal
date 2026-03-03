@@ -42,7 +42,34 @@ export function Header() {
             {/* Main Header */}
             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-16 bg-contain bg-no-repeat bg-center" style={{ backgroundImage: 'url("/ashoka-emblem.png")' }}></div>
+                    <div className="w-12 h-16 flex items-center justify-center">
+                        <svg viewBox="0 0 80 100" className="w-10 h-14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Ashoka Emblem - Lion Capital stylized */}
+                            {/* Top crown / abacus with lions */}
+                            <circle cx="40" cy="18" r="12" fill="#1B365D" stroke="#B8860B" strokeWidth="1.5" />
+                            <text x="40" y="22" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#B8860B">☸</text>
+                            {/* Pillar body */}
+                            <rect x="30" y="30" width="20" height="8" rx="2" fill="#1B365D" />
+                            <rect x="28" y="36" width="24" height="3" rx="1" fill="#B8860B" />
+                            {/* Lion figures - simplified */}
+                            <path d="M24 30 L40 10 L56 30" stroke="#B8860B" strokeWidth="1.5" fill="none" />
+                            <circle cx="32" cy="14" r="3" fill="#B8860B" opacity="0.8" />
+                            <circle cx="48" cy="14" r="3" fill="#B8860B" opacity="0.8" />
+                            {/* Dharma Chakra */}
+                            <circle cx="40" cy="52" r="10" stroke="#B8860B" strokeWidth="1.5" fill="none" />
+                            <circle cx="40" cy="52" r="2" fill="#B8860B" />
+                            {[...Array(24)].map((_, i) => (
+                                <line key={i} x1="40" y1="44" x2="40" y2="42" stroke="#B8860B" strokeWidth="0.5"
+                                    transform={`rotate(${i * 15} 40 52)`} />
+                            ))}
+                            {/* Base */}
+                            <path d="M20 65 Q40 72 60 65" stroke="#1B365D" strokeWidth="2" fill="none" />
+                            {/* Text: Satyameva Jayate */}
+                            <text x="40" y="82" textAnchor="middle" fontSize="5.5" fontWeight="bold" fill="#1B365D" fontFamily="serif">
+                                सत्यमेव जयते
+                            </text>
+                        </svg>
+                    </div>
                     <div>
                         <h1 className="text-xl font-bold text-navy-800 tracking-tight font-serif">
                             Indian Council of Medical Research

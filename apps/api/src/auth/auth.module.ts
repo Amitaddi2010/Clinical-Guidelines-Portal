@@ -19,7 +19,7 @@ import { RolesGuard } from './roles.guard';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'DEV_SECRET_KEY_CHANGE_IN_PROD_RS256',
         signOptions: {
-          expiresIn: '15m', // Requirement: 15 min access tokens
+          expiresIn: '24h', // 24h access tokens for dev
           algorithm: 'HS256' // Fallback to HS256 for dev, should be RS256 in production
         },
       }),
