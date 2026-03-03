@@ -41,7 +41,7 @@ export const dataSourceOptions: DataSourceOptions = useSqlite
             url: process.env.DATABASE_URL,
             entities: ENTITIES,
             migrations: [__dirname + '/migrations/*{.ts,.js}'],
-            synchronize: process.env.DB_SYNCHRONIZE === 'true',
+            synchronize: true, // FORCE TRUE FOR NOW TO DEBUG RENDER
             ssl: { rejectUnauthorized: false },
         }
         : {
@@ -53,11 +53,17 @@ export const dataSourceOptions: DataSourceOptions = useSqlite
             database: process.env.DB_NAME || 'cgp',
             entities: ENTITIES,
             migrations: [__dirname + '/migrations/*{.ts,.js}'],
-            synchronize: process.env.DB_SYNCHRONIZE === 'true',
+            synchronize: true, // FORCE TRUE FOR NOW TO DEBUG RENDER
             ssl: process.env.DB_SSL === 'true' || (process.env.DB_HOST || '').includes('.neon.tech')
                 ? { rejectUnauthorized: false }
                 : false,
         };
 
 const dataSource = new DataSource(dataSourceOptions);
+
+console.log('--- TypeORM Initialization ---');
+console.log('Database URL Provider:', process.env.DATABASE_URL ? 'DATABASE_URL' : 'Host/Port');
+console.log('Synchronize Setting:', dataSourceOptions.synchronize);
+console.log('Entities Loaded:', ENTITIES.length);
+
 export default dataSource;
