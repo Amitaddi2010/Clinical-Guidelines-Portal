@@ -3,10 +3,10 @@ import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { FileText, Search, Filter, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function GuidelinesList() {
+function GuidelinesListInner() {
     const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "all");
@@ -161,5 +161,13 @@ export default function GuidelinesList() {
 
             <Footer />
         </div >
+    );
+}
+
+export default function GuidelinesList() {
+    return (
+        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy-600"></div></div>}>
+            <GuidelinesListInner />
+        </Suspense>
     );
 }
