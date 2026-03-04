@@ -32,7 +32,7 @@ export class EvidenceSummary {
   @Column({ nullable: true })
   confidence_interval: string;
 
-  @Column({ type: 'enum', enum: EvidenceLevel, nullable: true })
+  @Column({ type: 'enum', enum: ['high', 'moderate', 'low', 'very_low'], nullable: true })
   certainty: EvidenceLevel;
 
   @Column({ type: 'json', nullable: true })
